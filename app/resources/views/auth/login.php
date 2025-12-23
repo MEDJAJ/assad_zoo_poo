@@ -1,14 +1,16 @@
 <?php
 session_start();
-
 if (file_exists('../../../includes/config.php')) {
     include '../../../includes/config.php'; 
+    
+}else {
     echo 'Fichier config.php introuvable';
     exit;
 }
 include '../../../includes/functions.php';
 
-
+$db = new Database();
+$con = $db->getConnection();
 
 
 class User {

@@ -3,6 +3,7 @@ if (file_exists('../../../includes/config.php')) {
     include '../../../includes/config.php';
 } else {
     echo 'Fichier config.php introuvable';
+    exit;
 }
 include '../../../includes/functions.php';
 

@@ -26,6 +26,5 @@ class Database {
 }
 
 
-$db = new Database();
-$conn = $db->getConnection();
+
 ?>
