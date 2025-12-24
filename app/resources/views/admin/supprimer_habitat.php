@@ -1,6 +1,4 @@
 <?php
-
-
 if (file_exists('../../../includes/config.php')) {
     include '../../../includes/config.php';
 } else {
@@ -9,22 +7,25 @@ if (file_exists('../../../includes/config.php')) {
 }
 include '../../../includes/functions.php';
 
-if (!isset($_GET['id'])) {
+include '../../../includes/classes/habitat.php';
+
+$db = new Database();
+$conn = $db->getConnection();
+
+
+if (!isset($_GET['id']) || empty($_GET['id'])) {
     header("Location: habitats_admin.php");
     exit;
 }
 
-$id_habitat = intval($_GET['id']);
+$id_habitat = (int) $_GET['id'];
 
+$habitat = new Habitat();
 
-$sql = "DELETE FROM habitats WHERE id_habitat = $id_habitat";
-if (mysqli_query($con, $sql)) {
-    header("Location: habitats_admin.php"); 
+if ($habitat->delete($conn,$id_habitat)) {
+    header("Location: habitats_admin.php?deleted=1");
     exit;
 } else {
-    echo "Erreur lors de la suppression : " . mysqli_error($con);
+    echo "Erreur lors de la suppression de l'habitat.";
 }
 ?>
-
-
-

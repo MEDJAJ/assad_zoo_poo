@@ -1,5 +1,6 @@
 <?php
 
+
 if (file_exists('../../../includes/config.php')) {
     include '../../../includes/config.php';
 } else {
@@ -7,19 +8,29 @@ if (file_exists('../../../includes/config.php')) {
     exit;
 }
 
-
-if (!isset($_GET['id_visite'])) {
-    die("Visite non spécifiée");
-}
-
-$id_visite = (int)$_GET['id_visite'];
+include '../../../includes/classes/Visite.php';
 
 
-$sql_delete = "DELETE FROM visite_guidee WHERE id_visiteguide = $id_visite";
-if (mysqli_query($con, $sql_delete)) {
+$db = new Database();
+$conn = $db->getConnection();
+
+
+if (!isset($_GET['id_visite']) || empty($_GET['id_visite'])) {
     header("Location: guide_dashboard.php");
     exit;
-} else {
-    die("Erreur lors de la suppression : " . mysqli_error($conn));
 }
+
+$id_visite = (int) $_GET['id_visite'];
+
+
+$visite = new Visite();
+
+if ($visite->deleteVisite($conn, $id_visite)) {
+    header("Location: guide_dashboard.php?deleted=1");
+    exit;
+} else {
+    echo "Erreur lors de la suppression de la visite";
+}
+
+
 ?>

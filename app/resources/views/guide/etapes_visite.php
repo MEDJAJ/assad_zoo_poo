@@ -1,141 +1,140 @@
-
 <?php
 session_start();
+
 if (file_exists('../../../includes/config.php')) {
     include '../../../includes/config.php';
 } else {
     echo 'Fichier config.php introuvable';
     exit;
 }
+
 include '../../../includes/functions.php';
-$message="";
-$etat="";
- $id_visite = (int) $_GET['id_visite'];
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $regexTitreEtape = '/^[a-zA-ZÀ-ÿ0-9\s]{3,100}$/';
-$regexDescriptionEtape = '/^[a-zA-ZÀ-ÿ0-9\s.,;:!?\'"()\-\n]{0,500}$/'; 
-$regexOrdreEtape = '/^\d+$/';
+include '../../../includes/classes/EtapVisite.php';
 
-  $titreetape = mysqli_real_escape_string($con, $_POST['titreetape']);
-    $descriptionetape = mysqli_real_escape_string($con, $_POST['descriptionetape']);
-    $ordreetape = (int)$_POST['ordreetape'];
-    $id_visite = (int) $_GET['id_visite'];
-    if(!validation($titreetape,$regexTitreEtape) || !validation($descriptionetape,$regexDescriptionEtape) || !validation($ordreetape,$regexOrdreEtape)){
-        $message="toutes les champs doit etre valid";
-        $etat="error";
-    }else{
-        $sql="INSERT INTO etapevisite(titre_etape,description_etape,ordre_etape,id_visite)
-        VALUES('$titreetape','$descriptionetape','$ordreetape','$id_visite')
-        ";
-        if(mysqli_query($con,$sql)){
-             $message="Cette Etape visite ajouter avec sucess";
-        $etat="success";
-        }
-    }
+$db   = new Database();
+$conn = $db->getConnection();
 
+$message = "";
+$etat    = "";
+
+$id_visite = (int)($_GET['id_visite'] ?? 0);
+if ($id_visite <= 0) {
+    die("Visite invalide");
 }
 
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    $regexTitreEtape = '/^[a-zA-ZÀ-ÿ0-9\s]{3,100}$/';
+    $regexDescriptionEtape = '/^[a-zA-ZÀ-ÿ0-9\s.,;:!?\'"()\-\n]{0,500}$/';
+    $regexOrdreEtape = '/^\d+$/';
+
+    $titreetape       = trim($_POST['titreetape'] ?? '');
+    $descriptionetape = trim($_POST['descriptionetape'] ?? '');
+    $ordreetape       = (int)($_POST['ordreetape'] ?? 0);
+
+    if (
+        !validation($titreetape, $regexTitreEtape) ||
+        !validation($descriptionetape, $regexDescriptionEtape) ||
+        !validation($ordreetape, $regexOrdreEtape)
+    ) {
+        $message = "Tous les champs doivent être valides";
+        $etat = "error";
+    } else {
+        $etape = new EtapeVisite();
+        $etape->setIdVisite($id_visite);
+        $etape->setTitre($titreetape);
+        $etape->setDescription($descriptionetape);
+        $etape->setOrdre($ordreetape);
+
+        if ($etape->createEtape($conn)) {
+            $message = "Étape ajoutée avec succès";
+            $etat = "success";
+        } else {
+            $message = "Erreur lors de l'ajout";
+            $etat = "error";
+        }
+    }
+}
+
+$etapeObj = new EtapeVisite();
+$etapes = $etapeObj->getEtapesByVisite($conn, $id_visite);
 ?>
 
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<title>Étapes de visite</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
-    <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Ajouter des étapes pour une visite guidée</h1>
-     <?php
-           if($etat==="error"){
 
-echo   "<div class='text-center mt-4 mb-4 text-red-500 border border-black  pb-2 bg-red-100'>";
-       echo "<p class='text-red-600 mt-2 font-bold'>$message</p>";
-   echo "</div>";
-           }elseif($etat==="success"){
-        
-echo   "<div class='text-center mt-4 mb-4 text-red-500 border border-black  pb-2 bg-green-100'>";
-     echo "<p class='text-green-600 mt-2 font-bold'>$message</p>";
-   echo "</div>";
-           }
-            
-          
-            ?>
+<body>
+
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Ajouter des étapes pour une visite guidée</h1>
+
+    <?php if ($etat === "error") { ?>
+        <div class="bg-red-100 border border-red-400 text-red-700 p-4 mb-4 rounded">
+            <?= $message ?>
+        </div>
+    <?php } elseif ($etat === "success") { ?>
+        <div class="bg-green-100 border border-green-400 text-green-700 p-4 mb-4 rounded">
+            <?= $message ?>
+        </div>
+    <?php } ?>
+
     <form method="POST" class="bg-white p-6 rounded-xl shadow space-y-6">
-    
         <div>
             <label class="block font-medium mb-2">Titre de l'étape *</label>
-            <input type="text" name="titreetape" required 
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="Ex: Zone mammifères asiatiques">
+            <input type="text" name="titreetape" required
+                   class="w-full px-4 py-3 border rounded-lg">
         </div>
 
-      
         <div>
-            <label class="block font-medium mb-2">Description de l'étape</label>
+            <label class="block font-medium mb-2">Description</label>
             <textarea name="descriptionetape" rows="4"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="Décrivez cette étape..."></textarea>
+                      class="w-full px-4 py-3 border rounded-lg"></textarea>
         </div>
 
-    
         <div>
-            <label class="block font-medium mb-2">Ordre de l'étape *</label>
-            <input type="number" name="ordreetape" required min="1"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="Ex: 1">
+            <label class="block font-medium mb-2">Ordre *</label>
+            <input type="number" name="ordreetape" min="1" required
+                   class="w-full px-4 py-3 border rounded-lg">
         </div>
 
-      
-
-        
-        <div class="flex space-x-4 pt-4">
-            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold">
-                Ajouter l'étape
-            </button>
-            <a href="#" class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 font-semibold">
-                Annuler
-            </a>
-        </div>
+        <button type="submit"
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+            Ajouter l'étape
+        </button>
     </form>
 </div>
 
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6 text-center text-blue-500">Étapes de la visite guidée</h1>
-<?php 
-$etapes="SELECT * FROM etapevisite WHERE id_visite=$id_visite";
-$result_etapes=mysqli_query($con,$etapes);
-if(mysqli_num_rows($result_etapes)>0){
+    <h1 class="text-3xl font-bold mb-6 text-center text-blue-500">
+        Étapes de la visite guidée
+    </h1>
 
-
-?>
-
+<?php if (!empty($etapes)) { ?>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-       <?php while($row=mysqli_fetch_assoc($result_etapes)){
-
-       ?>
-        <div class="bg-white shadow-lg rounded-xl p-6 hover:shadow-2xl transition-shadow duration-300">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-gray-800"><?= $row['titre_etape']?></h2>titre_etape
-               
-            </div>
-            <p class="text-gray-600">
-                <?= $row['description_etape']?>
+    <?php foreach ($etapes as $row) { ?>
+        <div class="bg-white shadow-lg rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-2">
+                <?= htmlspecialchars($row['titre_etape']) ?>
+            </h2>
+            <p class="text-gray-600 mb-2">
+                <?= nl2br(htmlspecialchars($row['description_etape'])) ?>
             </p>
-             <span class="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded-full">
-                    Ordre <?= $row['ordre_etape']?>
-                </span>
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                Ordre <?= $row['ordre_etape'] ?>
+            </span>
         </div>
-<?php }  ?>
+    <?php } ?>
+    </div>
+<?php } else { ?>
+    <p class="text-center text-gray-500">Aucune étape trouvée</p>
+<?php } ?>
 </div>
-<?php }  ?>
-</div>
-
-
 
 </body>
 </html>

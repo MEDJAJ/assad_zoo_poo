@@ -1,18 +1,15 @@
 <?php
-if (file_exists('../../../includes/config.php')) {
-    include '../../../includes/config.php';
-} else {
-    echo 'Fichier config.php introuvable';
+include '../../../includes/config.php';
+include '../../../includes/classes/animal.php';
+
+$db = new Database();
+$conn = $db->getConnection();
+
+if (isset($_GET['id'])) {
+    $id = intval($_GET['id']);
+    $animal = new Animal($conn);
+    $animal->delete($conn,$id);
 }
-
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-
-
-if ($id > 0) {
-    $query = "DELETE FROM animaux WHERE id_animal=$id";
-    mysqli_query($con, $query);
-}
-
 
 header("Location: animals_admin.php");
 exit;

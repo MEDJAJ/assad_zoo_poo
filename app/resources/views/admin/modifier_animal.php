@@ -3,8 +3,14 @@ if (file_exists('../../../includes/config.php')) {
     include '../../../includes/config.php';
 } else {
     echo 'Fichier config.php introuvable';
+    exit;
 }
+
 include '../../../includes/functions.php';
+include '../../../includes/classes/animal.php';
+
+$db = new Database();
+$conn = $db->getConnection();
 
 if (!isset($_GET['id'])) {
     header("Location: animals_admin.php");
@@ -12,53 +18,65 @@ if (!isset($_GET['id'])) {
 }
 
 $id_animal = intval($_GET['id']);
-$result = mysqli_query($con, "SELECT * FROM animaux WHERE id_animal = $id_animal");
 
-if (mysqli_num_rows($result) == 0) {
+
+$stmt = $conn->prepare("SELECT * FROM animaux WHERE id_animal = :id");
+$stmt->execute([':id' => $id_animal]);
+$animalData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$animalData) {
     echo "Animal non trouvé";
     exit;
 }
 
-$animal = mysqli_fetch_assoc($result);
+
+$animal = new Animal(
+    $animalData['nom'],
+    $animalData['espece'],
+    $animalData['alimentation'],
+    $animalData['image'],
+    $animalData['pays_origine'],
+    $animalData['description'],
+    $animalData['id_habitat']
+);
 
 $message = "";
 
+
+$habitats = $animal->getHabitats($conn);
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $nom = mysqli_real_escape_string($con, trim($_POST["nom"]));
-    $espece = mysqli_real_escape_string($con, trim($_POST["espece"]));
-    $alimentation = mysqli_real_escape_string($con, $_POST["alimentation"]);
-    $pays = mysqli_real_escape_string($con, trim($_POST["pays"]));
-    $description = mysqli_real_escape_string($con, trim($_POST["description"]));
-    $habitat = mysqli_real_escape_string($con, trim($_POST["habitat"]));
+  
+    $nom = trim($_POST["nom"]);
+    $espece = trim($_POST["espece"]);
+    $alimentation = $_POST["alimentation"];
+    $pays = trim($_POST["pays"]);
+    $description = trim($_POST["description"]);
+    $habitat = intval($_POST["habitat"]);
 
-    $imageName = $animal['image']; 
-
-    $allowed = ["jpg","jpeg","png","webp"];
+  
+    $imageName = $animalData['image']; 
     if (!empty($_FILES["image"]["name"])) {
         $imageName = time() . "_" . basename($_FILES["image"]["name"]);
-        $uploadPath = "../../../assets/uploads/" . $imageName;
-        move_uploaded_file($_FILES["image"]["tmp_name"], $uploadPath);
+        move_uploaded_file($_FILES["image"]["tmp_name"], "../../../assets/uploads/" . $imageName);
     }
 
-    $sql = "UPDATE animaux SET 
-                nom='$nom', 
-                espece='$espece', 
-                alimentation='$alimentation', 
-                image='$imageName', 
-                pays_origine='$pays', 
-                description='$description', 
-                id_habitat='$habitat'
-            WHERE id_animal = $id_animal";
+ 
+    $animal->setNom($nom);
+    $animal->setEspece($espece);
+    $animal->setAlimentation($alimentation);
+    $animal->setPays($pays);
+    $animal->setDescription($description);
+    $animal->setHabitat($habitat);
+    $animal->setImage($imageName);
 
-    if (mysqli_query($con, $sql)) {
+   
+    if ($animal->update($conn, $id_animal)) {
         $message = "Animal mis à jour avec succès";
-        $animal = mysqli_fetch_assoc(mysqli_query($con, "SELECT * FROM animaux WHERE id_animal = $id_animal"));
     } else {
-        $message = "Erreur lors de la mise à jour : " . mysqli_error($con);
+        $message = "Erreur lors de la mise à jour";
     }
 }
-
-$habitats = mysqli_query($con, "SELECT id_habitat, nom FROM habitats");
 ?>
 
 <!DOCTYPE html>
@@ -72,7 +90,9 @@ $habitats = mysqli_query($con, "SELECT id_habitat, nom FROM habitats");
 <body class="bg-gray-100">
 
 <div class="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-xl shadow">
-    <h1 class="text-2xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-edit"></i> Modifier Animal</h1>
+    <h1 class="text-2xl font-bold mb-6 flex items-center gap-2">
+        <i class="fas fa-edit"></i> Modifier Animal
+    </h1>
 
     <?php if ($message): ?>
         <div class="bg-green-100 text-green-700 p-3 rounded mb-6"><?= $message ?></div>
@@ -80,31 +100,31 @@ $habitats = mysqli_query($con, "SELECT id_habitat, nom FROM habitats");
 
     <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        <input name="nom" placeholder="Nom" value="<?= htmlspecialchars($animal['nom']) ?>" class="p-3 border rounded-lg" required>
-        <input name="espece" placeholder="Espèce" value="<?= htmlspecialchars($animal['espece']) ?>" class="p-3 border rounded-lg" required>
+        <input name="nom" placeholder="Nom" value="<?= htmlspecialchars($animalData['nom']) ?>" class="p-3 border rounded-lg" required>
+        <input name="espece" placeholder="Espèce" value="<?= htmlspecialchars($animalData['espece']) ?>" class="p-3 border rounded-lg" required>
 
         <select name="alimentation" class="p-3 border rounded-lg">
-            <option value="Carnivore" <?= $animal['alimentation'] === 'Carnivore' ? 'selected' : '' ?>>Carnivore</option>
-            <option value="Herbivore" <?= $animal['alimentation'] === 'Herbivore' ? 'selected' : '' ?>>Herbivore</option>
-            <option value="Omnivore" <?= $animal['alimentation'] === 'Omnivore' ? 'selected' : '' ?>>Omnivore</option>
+            <option value="Carnivore" <?= $animalData['alimentation'] === 'Carnivore' ? 'selected' : '' ?>>Carnivore</option>
+            <option value="Herbivore" <?= $animalData['alimentation'] === 'Herbivore' ? 'selected' : '' ?>>Herbivore</option>
+            <option value="Omnivore" <?= $animalData['alimentation'] === 'Omnivore' ? 'selected' : '' ?>>Omnivore</option>
         </select>
 
-        <input name="pays" placeholder="Pays d'origine" value="<?= htmlspecialchars($animal['pays_origine']) ?>" class="p-3 border rounded-lg" required>
+        <input name="pays" placeholder="Pays d'origine" value="<?= htmlspecialchars($animalData['pays_origine']) ?>" class="p-3 border rounded-lg" required>
 
         <select name="habitat" class="p-3 border rounded-lg">
             <option value="">Sélectionner Habitat</option>
-            <?php while($rowHab = mysqli_fetch_assoc($habitats)) : ?>
-                <option value="<?= $rowHab['id_habitat'] ?>" <?= $animal['id_habitat'] == $rowHab['id_habitat'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($rowHab['nom']) ?>
+            <?php foreach($habitats as $h): ?>
+                <option value="<?= $h['id_habitat'] ?>" <?= $animalData['id_habitat'] == $h['id_habitat'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($h['nom']) ?>
                 </option>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         </select>
 
-        <textarea name="description" placeholder="Description" class="p-3 border rounded-lg md:col-span-2"><?= htmlspecialchars($animal['description']) ?></textarea>
+        <textarea name="description" placeholder="Description" class="p-3 border rounded-lg md:col-span-2"><?= htmlspecialchars($animalData['description']) ?></textarea>
 
-        <?php if ($animal['image']) : ?>
+        <?php if ($animalData['image']): ?>
             <div class="md:col-span-2 flex justify-center">
-                <img src="../../../assets/uploads/<?= htmlspecialchars($animal['image']) ?>" class="h-48 object-cover rounded-lg">
+                <img src="../../../assets/uploads/<?= htmlspecialchars($animalData['image']) ?>" class="h-48 object-cover rounded-lg">
             </div>
         <?php endif; ?>
 
