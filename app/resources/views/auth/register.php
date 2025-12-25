@@ -1,5 +1,6 @@
 <?php
 
+
 if (file_exists('../../../includes/config.php')) {
     include '../../../includes/config.php';
 } else {
@@ -9,72 +10,17 @@ if (file_exists('../../../includes/config.php')) {
 
 include '../../../includes/functions.php';
 
+
+require_once '../../../includes/classes/visitor.php';
+require_once '../../../includes/classes/guide.php';
+
+
 $db = new Database();
 $conn = $db->getConnection();
 
-class User {
-
-    private $conn;
-    private $nom;
-    private $email;
-    private $password;
-    private $role;
-    private $pays;
-    private $status;
-
-    public function __construct($db) {
-        $this->conn = $db;
-    }
-
-    public function setNom($nom) {
-        $this->nom = $nom;
-    }
-
-    public function setEmail($email) {
-        $this->email = $email;
-    }
-
-    public function setPassword($password) {
-        $this->password = password_hash($password, PASSWORD_DEFAULT);
-    }
-
-    public function setRole($role) {
-        $this->role = $role;
-        $this->status = ($role === 'guide') ? 0 : 1;
-    }
-
-    public function setPays($pays) {
-        $this->pays = $pays;
-    }
-
-    public function register() {
-        $sql = "INSERT INTO Utilisateur 
-                (nom, email, role, mot_passe, status_utilisateure, paye)
-                VALUES (:nom, :email, :role, :mot_passe, :status, :pays)";
-
-        try {
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bindParam(':nom', $this->nom);
-            $stmt->bindParam(':email', $this->email);
-            $stmt->bindParam(':role', $this->role);
-            $stmt->bindParam(':mot_passe', $this->password);
-            $stmt->bindParam(':status', $this->status, PDO::PARAM_INT);
-            $stmt->bindParam(':pays', $this->pays);
-
-            return $stmt->execute()
-                ? ["etat" => "success", "message" => "Compte créé avec succès"]
-                : ["etat" => "error", "message" => "Erreur lors de l'inscription"];
-
-        } catch (PDOException $e) {
-            return ["etat" => "error", "message" => $e->getMessage()];
-        }
-    }
-}
-
-
-$user = new User($conn);
 $etat = "";
 $message = "";
+
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
@@ -88,21 +34,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         !validation($nom, "/^[a-zA-ZÀ-ÿ\s]{2,50}$/") ||
         !validation($email, "/^[^\s@]+@[^\s@]+\.[^\s@]+$/") ||
         !validation($password, "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/") ||
-        !validation($role, "/^(guide|visitor)$/") ||
+        !validation($role, "/^(visitor|guide)$/") ||
         !validation($pays, "/^[a-zA-ZÀ-ÿ\s]{2,50}$/")
     ) {
         $etat = "error";
         $message = "Tous les champs doivent être valides";
     } else {
-        $user->setNom($nom);
-        $user->setEmail($email);
-        $user->setPassword($password);
-        $user->setRole($role);
-        $user->setPays($pays);
 
-        $result = $user->register();
-        $etat = $result["etat"];
-        $message = $result["message"];
+     
+        if ($role === 'visitor') {
+
+            $user = new Visitor(
+                $nom,
+                $email,
+                password_hash($password, PASSWORD_DEFAULT),
+                $pays,
+                'visitor',
+                true
+            );
+
+        } elseif ($role === 'guide') {
+
+            $user = new Guide(
+                $nom,
+                $email,
+                $password,
+                $pays,
+                'guide',
+                false
+            );
+        }
+
+
+        if ($user->register($conn)) {
+            $etat = "success";
+            $message = ($role === 'guide')
+                ? "Compte guide créé, en attente d'approbation"
+                : "Compte visiteur créé avec succès";
+        } else {
+            $etat = "error";
+            $message = "Erreur lors de l'inscription";
+        }
     }
 }
 ?>
@@ -124,14 +96,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <div class="relative z-10 w-full max-w-4xl flex bg-white rounded-2xl shadow-xl overflow-hidden">
 
-  
     <div class="hidden md:flex w-1/2 flex-col items-center justify-center bg-gray-50 p-8">
         <h1 class="text-6xl">🦁</h1>
         <h2 class="text-3xl font-bold mt-4">Zoo Virtuel ASSAD</h2>
         <p class="text-gray-600 mt-2 text-center">Découvrez les lions de l'Atlas</p>
+        <a href="login.php">
+ <button class="w-32 mt-12 bg-blue-600 text-white py-3 rounded-lg font-bold hover:opacity-90">
+                Se connecter
+            </button>
+
+        </a>
+       
     </div>
 
- 
     <div class="w-full md:w-1/2 p-8">
         <h2 class="text-3xl font-bold text-center mb-6">Créer un compte</h2>
 

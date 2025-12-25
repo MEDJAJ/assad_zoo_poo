@@ -132,7 +132,7 @@ public function countVisitesActives( $conn, int $id_guide)
     $stmt->bindValue(':id', $id_guide, PDO::PARAM_INT);
     $stmt->execute();
 
-    return (int) $stmt->fetchColumn();
+    return  $stmt->fetchColumn();
 }
 
 

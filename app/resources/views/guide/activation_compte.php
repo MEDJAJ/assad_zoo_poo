@@ -1,6 +1,7 @@
 
 
 <?php
+
 session_start();
 if (file_exists('../../../includes/config.php')) {
     include '../../../includes/config.php';
@@ -9,24 +10,35 @@ if (file_exists('../../../includes/config.php')) {
     exit;
 }
 
+$db = new Database();
+$conn = $db->getConnection();
+
+$id_u = $_SESSION["user_connecte"] ?? null;
+
+if (!$id_u) {
+    die("Utilisateur non connecté");
+}
 
 
+$sql = "SELECT * FROM Utilisateur WHERE id_utilisateure = :id";
+$stmt = $conn->prepare($sql);
+$stmt->bindParam(':id', $id_u, PDO::PARAM_INT);
+$stmt->execute();
 
-$id_u=$_SESSION["user_connecte"];
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-$sql="SELECT * FROM Utilisateur WHERE id_utilisateure=$id_u";
-$result=mysqli_query($con,$sql);
+if (!$user) {
+    die("Utilisateur introuvable");
+}
 
-if(!$result){
-    die("Error de recupération de utilisateure");
-}elseif(mysqli_num_rows($result)>0){
-    $user=mysqli_fetch_assoc($result);
-    if($user['status_utilisateure']==1){
-          header("Location: ../guide/guide_dashboard.php");
-    }
 
+if ($user['status_utilisateure'] == 1) {
+    header("Location: ../guide/guide_dashboard.php");
+    exit;
 }
 ?>
+
+
 
 
 
@@ -54,7 +66,7 @@ if(!$result){
         </div>
 
 
-        <h1 class="text-3xl font-bold text-gray-800 mb-4">Compte en attente d'activation</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Compte en attente d'approve</h1>
 
        
         <p class="text-gray-600 mb-6">

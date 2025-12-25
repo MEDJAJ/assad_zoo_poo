@@ -20,7 +20,7 @@ class Habitat {
 
    
     public function getAll($conn) {
-        
+    
         $sql = "SELECT * FROM habitats";
         return $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }

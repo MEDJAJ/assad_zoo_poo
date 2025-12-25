@@ -7,6 +7,12 @@ class EtapeVisite {
     private $description;
     private $ordre;
 
+    public function __construct($id_visite="",$titre="",$description="",$ordre=""){
+        $this->id_visite=$id_visite;
+         $this->titre=$titre;
+          $this->description=$description;
+           $this->ordre=$ordre;
+    }
     public function setIdVisite($id_visite) {
         $this->id_visite = $id_visite;
     }

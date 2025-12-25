@@ -1,96 +1,85 @@
 <?php
 session_start();
+
+
 if (file_exists('../../../includes/config.php')) {
-    include '../../../includes/config.php'; 
-    
-}else {
+    require_once '../../../includes/config.php';
+} else {
     echo 'Fichier config.php introuvable';
     exit;
 }
-include '../../../includes/functions.php';
+
+require_once '../../../includes/functions.php';
+
+require_once '../../../includes/classes/utilisateure.php';
 
 $db = new Database();
-$con = $db->getConnection();
+$conn = $db->getConnection();
 
-
-class User {
-    private $conn;
-
-    public function __construct($db) {
-        $this->conn = $db;
-    }
-
-    public function login($email, $password) {
-        try {
-            $sql = "SELECT * FROM Utilisateur WHERE email = :email";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bindParam(':email', $email);
-            $stmt->execute();
-
-            if ($stmt->rowCount() > 0) {
-                $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if (password_verify($password, $user['mot_passe'])) {
-                 
-                    $_SESSION["user_connecte"] = $user['id_utilisateure'];
-                    $_SESSION["name_user_connecte"] = $user['nom'];
-
-                    $role = $user['role'];
-                    $status = intval($user['status_utilisateure']);
-
-                    if ($role === "visitor") {
-                        if ($status === 0) {
-                            return ["etat"=>"error","message"=>"Attente activation de compte"];
-                        } else {
-                            return ["etat"=>"success","message"=>"Connexion réussie","redirect"=>"../visitor/home.php"];
-                        }
-                    } elseif ($role === "guide") {
-                        if ($status === 0) {
-                            return ["etat"=>"success","message"=>"Compte en attente d'autorisation","redirect"=>"../guide/activation_compte.php"];
-                        } else {
-                            return ["etat"=>"success","message"=>"Connexion réussie","redirect"=>"../guide/guide_dashboard.php"];
-                        }
-                    } else {
-                        return ["etat"=>"success","message"=>"Connexion réussie","redirect"=>"../admin/admin_dashboard.php"];
-                    }
-                } else {
-                    return ["etat"=>"error","message"=>"Mot de passe incorrect"];
-                }
-            } else {
-                return ["etat"=>"error","message"=>"Email introuvable"];
-            }
-
-        } catch(PDOException $e) {
-            return ["etat"=>"error","message"=>"Erreur PDO: " . $e->getMessage()];
-        }
-    }
-}
-
-
-$user = new User($con); 
-$message = "";
 $etat = "";
+$message = "";
 $redirect = "";
 
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
     $email = trim($_POST["email"]);
     $password = trim($_POST["password"]);
 
-    if (!validation($email, "/^[^\s@]+@[^\s@]+\.[^\s@]+$/") || 
-        !validation($password, "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/")) {
+    if (
+        !validation($email, "/^[^\s@]+@[^\s@]+\.[^\s@]+$/") ||
+        !validation($password, "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/")
+    ) {
         $etat = "error";
-        $message = "Email et mot de passe obligatoires et valides";
+        $message = "Email et mot de passe invalides";
     } else {
-        $result = $user->login($email, $password);
-        $etat = $result["etat"];
-        $message = $result["message"];
-        if(isset($result["redirect"])) {
-            header("Location: " . $result["redirect"]);
-            exit;
+
+    
+        $result = Utilisateur::login($conn, $email, $password);
+
+        if ($result === true) {
+
+            switch ($_SESSION['role']) {
+
+                case 'visitor':
+                    if ($_SESSION['status'] == 0) {
+                        $etat = "error";
+                        $message = "Compte visiteur en attente d'activation";
+                        break;
+                    }
+                    $redirect = "../visitor/home.php";
+                    break;
+
+                case 'guide':
+                    if ($_SESSION['status'] == 0) {
+                        $redirect = "../guide/activation_compte.php";
+                        break;
+                    }
+                    $redirect = "../guide/guide_dashboard.php";
+                    break;
+
+                case 'admin':
+                    $redirect = "../admin/admin_dashboard.php";
+                    break;
+
+                default:
+                    $etat = "error";
+                    $message = "Rôle inconnu";
+            }
+
+            if ($redirect !== "") {
+                header("Location: $redirect");
+                exit;
+            }
+
+        } else {
+            $etat = "error";
+            $message = $result; 
         }
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="fr">

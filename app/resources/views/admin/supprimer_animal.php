@@ -7,7 +7,7 @@ $conn = $db->getConnection();
 
 if (isset($_GET['id'])) {
     $id = intval($_GET['id']);
-    $animal = new Animal($conn);
+    $animal = new Animal();
     $animal->delete($conn,$id);
 }
 

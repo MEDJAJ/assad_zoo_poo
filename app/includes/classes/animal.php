@@ -1,4 +1,5 @@
 <?php
+
 class Animal {
     private $nom;
     private $espece;
