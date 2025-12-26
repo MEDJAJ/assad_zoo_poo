@@ -17,7 +17,7 @@ $db = new Database();
 $conn = $db->getConnection();
 
 
-if (!isset($_GET['id']) || empty($_GET['id'])) {
+if (!isset($_GET['id']) || empty($_GET['id'])){
     header("Location: guide_dashboard.php");
     exit;
 }
@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         !validation($prix, $regexPrix) ||
         !validation($langue, $regexLangue) ||
         $capacite < 1 || $duree < 1
-    ) {
+    ){
         $etat = "error";
         $message = "Tous les champs doivent être valides";
     } else {

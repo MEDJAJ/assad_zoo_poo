@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $visite->setPrix($prix);
         $visite->setCapacite($capacite);
         $visite->setLangue($langue);
-        $visite->setIdGuide($_SESSION['user_connecte']);
+        $visite->setIdGuide($_SESSION["user_id"]);
 
         if ($visite->createVisite($conn)){
             $etat = "success";
@@ -90,7 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <a href="create_visite.php" class="text-blue-600 font-semibold">Créer visite</a>
             <span class="flex items-center gap-2">
                 <i class="fas fa-user-circle"></i>
-                <?= htmlspecialchars($_SESSION['name_user_connecte']) ?>
+                <?= htmlspecialchars($_SESSION['role']) ?>
             </span>
         </div>
     </div>

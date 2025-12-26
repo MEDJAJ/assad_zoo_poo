@@ -6,25 +6,35 @@ if (file_exists('../../../includes/config.php')) {
     echo 'Fichier config.php introuvable';
     exit;
 }
+
+include '../../../includes/classes/Visite.php';
+include '../../../includes/classes/animal.php';
+
+$db = new Database();
+$conn = $db->getConnection();
+$visite=new Visite();
+$animal=new Animal();
 $message_animal="";
 $message_visite="";
-$animals_select="SELECT * FROM animaux";
-$visite_select="SELECT * FROM visite_guidee WHERE status_visiteguide='Disponible' OR status_visiteguide='Limité'";
+$animals_select=$animal->getAll($conn);
+$visite_select=$visite->getAllVisiteParStatus($conn);
 
 
 
-$animals_result = mysqli_query($con, $animals_select);
-if(!$animals_result){
-    $message_animal="Erreur lors de la récupération des animaux : " . mysqli_error($con);
-    exit;
+if(empty($animals_result)){
+    $message_animal="Aucun Animal trouvé " ;
+    
 }
 
 
-$visite_result = mysqli_query($con, $visite_select);
-if(!$visite_result){
-    $message_visite="Erreur lors de la récupération des habitats : " . mysqli_error($con);
-    exit;
+
+if(empty($visite_result)){
+    $message_visite="Aucun Animal trouvé  " ;
+   
 }
+
+
+
 
 
 ?>
@@ -87,11 +97,11 @@ if(!$visite_result){
     <section class="py-12">
         <div class="container mx-auto px-4">
             <h2 class="text-3xl font-bold mb-8 text-center">Animaux en vedette</h2>
-            <?php    if(mysqli_num_rows($animals_result)>0){
+            <?php    if(count($animals_select)>0){
                
              ?>
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-               <?php    while($row_animal=mysqli_fetch_assoc($animals_result)){
+               <?php    foreach($animals_select as $row_animal){
                     
                  ?>
                 <div class="animal-card bg-white rounded-xl shadow-md overflow-hidden">
@@ -125,13 +135,13 @@ if(!$visite_result){
         <div class="container mx-auto px-4">
             <h2 class="text-3xl font-bold mb-8 text-center">Visites guidées disponibles</h2>
             <?php
- if(mysqli_num_rows($visite_result)>0){
+ if(count($visite_select)>0){
 
  
             ?>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <?php
-  while($row_habitat=mysqli_fetch_assoc($visite_result)){
+    foreach($visite_select as $row_habitat){
 
 
         ?>

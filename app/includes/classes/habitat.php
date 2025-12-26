@@ -62,5 +62,20 @@ class Habitat {
         $stmt = $conn->prepare($sql);
         return $stmt->execute([':id' => $id]);
     }
+
+
+      
+    public function getHabitats($conn) {
+        $stmt = $conn->query("SELECT * FROM habitats");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    public function getIdANDNomHabitat($conn){
+        $sql="SELECT id_habitat, nom FROM habitats";
+         $stmt = $conn->prepare($sql);
+         $stmt->execute();
+         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

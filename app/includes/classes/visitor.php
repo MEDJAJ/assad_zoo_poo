@@ -13,9 +13,22 @@ public function __construct($nom, $email, $passwordHash, $pays, $role,$isActive)
 
   public function isActive() { return $this->isActive; }
 
-    public function activate() { $this->isActive = true; }
+       public function activate($conn,$id) {
+        $sql = "UPDATE Utilisateur 
+                SET status_utilisateure = 1 
+                WHERE id_utilisateure = :id";
+        $stmt = $conn->prepare($sql);
+        return $stmt->execute([':id' => $id]);
+    }
 
-    public function deactivate() { $this->isActive = false; }
+
+    public function deactivate($conn,$id) {
+        $sql = "UPDATE Utilisateur 
+                SET status_utilisateure = 0 
+                WHERE id_utilisateure = :id";
+        $stmt = $conn->prepare($sql);
+        return $stmt->execute([':id' => $id]);
+    }
 
 
     public function register($conn)

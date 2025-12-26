@@ -99,6 +99,42 @@ class Animal {
         $stmt = $conn->query("SELECT id_habitat, nom FROM habitats");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+
+    public function getAllPays($conn){
+        $sql="SELECT DISTINCT pays_origine FROM animaux";
+        $stm=$conn->prepare($sql);
+        $stm->execute();
+        return $stm->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+      public function searchByHabitatAndPays($conn, $id_habitat = 0, $pays = '') {
+        $sql = "
+            SELECT a.*, h.nom AS habitat_nom
+            FROM animaux a
+            INNER JOIN habitats h ON a.id_habitat = h.id_habitat
+            WHERE 1
+        ";
+
+        $params = [];
+
+        if ($id_habitat > 0) {
+            $sql .= " AND a.id_habitat = :id_habitat";
+            $params[':id_habitat'] = $id_habitat;
+        }
+
+        if (!empty($pays)) {
+            $sql .= " AND a.pays_origine = :pays";
+            $params[':pays'] = $pays;
+        }
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+   
 }
 
 

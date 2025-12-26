@@ -14,8 +14,8 @@ include '../../../includes/classes/Visite.php';
 $db = new Database();
 $conn = $db->getConnection();
 
-$id = $_SESSION["user_connecte"];
-$user_name_connected = $_SESSION["name_user_connecte"];
+$id = $_SESSION["user_id"];
+$user_name_connected = $_SESSION["role"];
 
 $visiteObj = new Visite();
 

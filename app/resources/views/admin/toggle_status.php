@@ -1,25 +1,22 @@
 <?php
-if (file_exists('../../../includes/config.php')) {
-    include '../../../includes/config.php';
-} else {
-    echo 'Fichier config.php introuvable';
-    exit;
-}
-include '../../../includes/functions.php';
+session_start();
 
-if (!isset($_GET['id']) || !isset($_GET['status'])) {
+require_once '../../../includes/config.php';
+require_once '../../../includes/classes/Admin.php';
+
+$db = new Database();
+$conn = $db->getConnection();
+
+if (!isset($_GET['id'])) {
     header("Location: users_admin.php");
     exit;
 }
 
-$id_user = intval($_GET['id']);
-$new_status = intval($_GET['status']);
+$id = (int) $_GET['id'];
 
-
-$sql = "UPDATE Utilisateur SET status_utilisateure = $new_status WHERE id_utilisateure = $id_user";
-mysqli_query($con, $sql);
-
+Admin::toggleUser($conn, $id);
 
 header("Location: users_admin.php");
 exit;
+
 ?>

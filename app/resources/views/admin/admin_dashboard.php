@@ -5,28 +5,25 @@ if (file_exists('../../../includes/config.php')) {
     echo 'Fichier config.php introuvable';
 }
 
-$requéte_sql_u="SELECT * FROM utilisateur";
-$requéte_sql_a="SELECT * FROM animaux";
-$requéte_sql_v="SELECT * FROM visite_guidee";
-$requéte_sql_r="SELECT * FROM reservation";
+include '../../../includes/classes/Animal.php';
+include '../../../includes/classes/habitat.php';
+include '../../../includes/classes/visite.php';
+include '../../../includes/classes/utilisateure.php';
+$db = new Database();
+$conn = $db->getConnection();
+$animal=new Animal();
+$habitat=new Habitat();
+$visite=new Visite();
 
-$result__sql_u=mysqli_query($con,$requéte_sql_u);
-$result__sql_a=mysqli_query($con,$requéte_sql_a);
-$result__sql_v=mysqli_query($con,$requéte_sql_v);
-$result__sql_r=mysqli_query($con,$requéte_sql_r);
 
-if(!$result__sql_u){
-    die("Error de la récuperation utilsateures");
-}
-if(!$result__sql_a){
-    die("Error de la récuperation animaux");
-}
-if(!$result__sql_v){
-    die("Error de la récuperation visites");
-}
-if(!$result__sql_r){
-    die("Error de la récuperation reservation");
-}
+$req_animaux = $animal->getAll($conn);
+$req_visites = $visite->getVisite($conn);
+$req_habitats = $habitat->getHabitats($conn);
+       
+$req_utilisateure=Utilisateur::getAllUsers($conn) ;
+
+
+
 ?>
 
 
@@ -100,7 +97,7 @@ if(!$result__sql_r){
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-500">Total Utilisateurs</p>
-                            <p class="text-3xl font-bold"><?= mysqli_num_rows($result__sql_u) ?></p>
+                            <p class="text-3xl font-bold"><?= count($req_utilisateure) ?></p>
                         </div>
                         <div class="bg-blue-100 p-3 rounded-full">
                             <i class="fas fa-users text-blue-600 text-xl"></i>
@@ -112,7 +109,7 @@ if(!$result__sql_r){
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-500">Total Animaux</p>
-                            <p class="text-3xl font-bold"><?= mysqli_num_rows($result__sql_a) ?></p>
+                            <p class="text-3xl font-bold"><?= count($req_animaux) ?></p>
                         </div>
                         <div class="bg-green-100 p-3 rounded-full">
                             <i class="fas fa-paw text-green-600 text-xl"></i>
@@ -124,7 +121,7 @@ if(!$result__sql_r){
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-500">Total Visites</p>
-                            <p class="text-3xl font-bold"><?= mysqli_num_rows($result__sql_v) ?></p>
+                            <p class="text-3xl font-bold"><?= count($req_visites) ?></p>
                         </div>
                         <div class="bg-purple-100 p-3 rounded-full">
                             <i class="fas fa-calendar text-purple-600 text-xl"></i>
@@ -136,7 +133,7 @@ if(!$result__sql_r){
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-500">Total Réservations</p>
-                            <p class="text-3xl font-bold"><?= mysqli_num_rows($result__sql_r) ?></p>
+                            <p class="text-3xl font-bold"><?= count($req_habitats) ?></p>
                         </div>
                         <div class="bg-yellow-100 p-3 rounded-full">
                             <i class="fas fa-ticket-alt text-yellow-600 text-xl"></i>

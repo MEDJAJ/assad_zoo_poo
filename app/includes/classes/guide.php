@@ -36,13 +36,20 @@ class Guide extends Utilisateur
         ]);
     }
 
-    public function approve()
-    {
-        $this->isApproved = true;
+    public function approve($conn,$id) {
+        $sql = "UPDATE Utilisateur 
+                SET status_utilisateure = 1 
+                WHERE id_utilisateure = :id";
+        $stmt = $conn->prepare($sql);
+        return $stmt->execute([':id' => $id]);
     }
 
-    public function isApproved()
-    {
-        return $this->isApproved;
+
+    public function disapprove($conn,$id) {
+        $sql = "UPDATE Utilisateur 
+                SET status_utilisateure = 0 
+                WHERE id_utilisateure = :id";
+        $stmt = $conn->prepare($sql);
+        return $stmt->execute([':id' => $id]);
     }
 }

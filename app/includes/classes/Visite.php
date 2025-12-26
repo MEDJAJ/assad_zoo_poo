@@ -160,6 +160,49 @@ public function getReservationsByGuide($conn, int $id_guide)
 }
 
 
+public function getVisite($conn){
+    $sql="SELECT * FROM visite_guidee";
+    $stmt=$conn->query($sql);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+  
+}
+
+public function getAllVisiteParStatus($conn){
+    $visite_select="SELECT * FROM visite_guidee WHERE status_visiteguide='Disponible' OR status_visiteguide='Limité'";
+    $stmt=$conn->query($visite_select);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+
+ public function searchByTitle($conn, $search = '') {
+        $sql = "
+            SELECT v.*, u.nom AS nom_guide
+            FROM visite_guidee v
+            INNER JOIN Utilisateur u ON v.id_guide = u.id_utilisateure
+            WHERE 1
+        ";
+
+        $params = [];
+
+        if (!empty($search)) {
+            $sql .= " AND v.titre LIKE :search";
+            $params[':search'] = "%$search%";
+        }
+
+        $sql .= " ORDER BY v.date_heure ASC";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+
+
+
+
 
 
 }

@@ -39,33 +39,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($result === true) {
 
-            switch ($_SESSION['role']) {
+           switch ($_SESSION['role']) {
 
-                case 'visitor':
-                    if ($_SESSION['status'] == 0) {
-                        $etat = "error";
-                        $message = "Compte visiteur en attente d'activation";
-                        break;
-                    }
-                    $redirect = "../visitor/home.php";
-                    break;
+    case 'visitor':
+        if ($_SESSION['status'] === 0) {
+            $etat = "error";
+            $message = "Compte visiteur désactivé";
+            break;
+        }
+        $redirect = "../visitor/home.php";
+        break;
 
-                case 'guide':
-                    if ($_SESSION['status'] == 0) {
-                        $redirect = "../guide/activation_compte.php";
-                        break;
-                    }
-                    $redirect = "../guide/guide_dashboard.php";
-                    break;
+    case 'guide':
+        if ($_SESSION['status'] === 0) {
+            $redirect = "../guide/activation_compte.php";
+            break;
+        }
+        $redirect = "../guide/guide_dashboard.php";
+        break;
 
-                case 'admin':
-                    $redirect = "../admin/admin_dashboard.php";
-                    break;
+    case 'admin':
+        $redirect = "../admin/admin_dashboard.php";
+        break;
+}
 
-                default:
-                    $etat = "error";
-                    $message = "Rôle inconnu";
-            }
 
             if ($redirect !== "") {
                 header("Location: $redirect");

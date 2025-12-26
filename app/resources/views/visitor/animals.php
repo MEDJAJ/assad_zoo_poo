@@ -7,49 +7,26 @@ if (file_exists('../../../includes/config.php')) {
     exit;
 }
 
+include '../../../includes/classes/animal.php';
+include '../../../includes/classes/habitat.php';
+
+$db = new Database();
+$conn = $db->getConnection();
+
+$animal=new Animal();
+$habitat=new Habitat();
 
 $id_habitat = isset($_GET['habitat']) ? intval($_GET['habitat']) : 0;
 $pays = isset($_GET['pays']) ? trim($_GET['pays']) : '';
 
 
-$habitats = mysqli_query($con, "SELECT id_habitat, nom FROM habitats");
+$habitats = $habitat->getIdANDNomHabitat($conn);
 
 
-$pays_list = mysqli_query($con, "SELECT DISTINCT pays_origine FROM animaux");
+$pays_list = $animal->getAllPays($conn);
 
 
-$sql = "
-SELECT a.*, h.nom AS habitat_nom
-FROM animaux a
-INNER JOIN habitats h ON a.id_habitat = h.id_habitat
-WHERE 1
-";
-
-$params = [];
-$types = "";
-
-
-if ($id_habitat > 0) {
-    $sql .= " AND a.id_habitat = ?";
-    $params[] = $id_habitat;
-    $types .= "i";
-}
-
-
-if (!empty($pays)) {
-    $sql .= " AND a.pays_origine = ?";
-    $params[] = $pays;
-    $types .= "s";
-}
-
-$stmt = $con->prepare($sql);
-
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
-}
-
-$stmt->execute();
-$result_animaux = $stmt->get_result();
+$result_animaux =  $animal->searchByHabitatAndPays($conn, $id_habitat, $pays);;
 ?>
 
 <!DOCTYPE html>
@@ -90,7 +67,7 @@ $result_animaux = $stmt->get_result();
                 <label class="block text-sm font-medium mb-2">Habitat</label>
                 <select name="habitat" class="w-full px-4 py-2 border rounded-lg">
                     <option value="">Tous les habitats</option>
-                    <?php while ($h = mysqli_fetch_assoc($habitats)) { ?>
+                    <?php foreach ($habitats as $h) { ?>
                         <option value="<?= $h['id_habitat'] ?>"
                             <?= ($id_habitat == $h['id_habitat']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($h['nom']) ?>
@@ -104,7 +81,7 @@ $result_animaux = $stmt->get_result();
                 <label class="block text-sm font-medium mb-2">Pays d'origine</label>
                 <select name="pays" class="w-full px-4 py-2 border rounded-lg">
                     <option value="">Tous les pays</option>
-                    <?php while ($p = mysqli_fetch_assoc($pays_list)) { ?>
+                    <?php foreach ($pays_list as $p) { ?>
                         <option value="<?= htmlspecialchars($p['pays_origine']) ?>"
                             <?= ($pays === $p['pays_origine']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($p['pays_origine']) ?>
@@ -127,8 +104,8 @@ $result_animaux = $stmt->get_result();
 <main class="container mx-auto px-4 py-8">
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
-        <?php if ($result_animaux->num_rows > 0) { ?>
-            <?php while ($a = $result_animaux->fetch_assoc()) { ?>
+        <?php if (count($result_animaux) > 0) { ?>
+            <?php foreach($result_animaux as $a) { ?>
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <img src="../../../assets/uploads/<?= htmlspecialchars($a['image']) ?>"
                          class="w-full h-48 object-cover">

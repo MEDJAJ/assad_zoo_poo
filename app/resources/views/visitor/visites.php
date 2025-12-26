@@ -6,35 +6,17 @@ if (file_exists('../../../includes/config.php')) {
     echo 'Fichier config.php introuvable';
     exit;
 }
+include '../../../includes/classes/Visite.php';
+include '../../../includes/classes/reservation.php';
 
-
+$db = new Database();
+$conn = $db->getConnection();
+$visite=new Visite();
+$reservation=new Reservation();
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-$sql = "
-SELECT v.*, u.nom AS nom_guide
-FROM visite_guidee v
-INNER JOIN Utilisateur u ON v.id_guide = u.id_utilisateure
-WHERE 1
-";
 
-$params = [];
-$types = "";
-
-
-if (!empty($search)) {
-    $sql .= " AND v.titre LIKE ?";
-    $params[] = "%$search%";
-    $types .= "s";
-}
-
-$sql .= " ORDER BY v.date_heure ASC";
-
-$stmt = $con->prepare($sql);
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
-}
-$stmt->execute();
-$result = $stmt->get_result();
+$result = $visite->searchByTitle($conn,$search);
 
 
 
@@ -84,50 +66,19 @@ $result = $stmt->get_result();
 
 <main class="container mx-auto px-4 py-8">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <?php if ($result->num_rows > 0): ?>
-            <?php while ($v = $result->fetch_assoc()): 
+        <?php if (count($result) > 0): ?>
+            <?php foreach($result as $v){
+
+          
                 
-   $reservation_sum = "
-    SELECT SUM(nb_personnes) AS total_personnes
-    FROM reservation
-    WHERE id_visiteguide = " . (int)$v['id_visiteguide'];
-
-    $result_sum = mysqli_query($con, $reservation_sum);
-    $row_sum = mysqli_fetch_assoc($result_sum);
-
-    $places_reservees = $row_sum['total_personnes'] ?? 0;
-
-    $capacite_max = (int)$v['capaciter_max'];
-
-    if ($places_reservees >= $capacite_max) {
-        $status = "Complet";
-        $color="red";
-    } elseif ($places_reservees >= ($capacite_max - 3)){
-        $status = "Limité";
-        $color="yellow";
-    } else {
-        $status = "Disponible";
-         $color="green";
-    }
-
-
-if ($status !== $v['status_visiteguide']) {
-    $update_status ="
-        UPDATE visite_guidee
-        SET status_visiteguide = ?
-        WHERE id_visiteguide = ?
-    ";
-    $stmt_update = $con->prepare($update_status);
-    $stmt_update->bind_param("si", $status, $v['id_visiteguide']);
-    $stmt_update->execute();
-}
+ $result_reservation=$reservation->updateStatusVisite($conn,$v)
                 ?>
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
                             <h3 class="text-xl font-bold"><?= htmlspecialchars($v['titre']) ?></h3>
                            
-                            <span class="bg-<?= $color ?>-100 text-<?= $color ?>-800 px-3 py-1 rounded-full text-sm"><?= htmlspecialchars($status) ?></span>
+                            <span class="bg-<?=  $result_reservation['color'] ?>-100 text-<?=  $result_reservation['color'] ?>-800 px-3 py-1 rounded-full text-sm"><?= htmlspecialchars( $result_reservation['status']) ?></span>
                         </div>
                         
                         <div class="space-y-3 mb-6">
@@ -157,7 +108,7 @@ if ($status !== $v['status_visiteguide']) {
                             </div>
                         </div>
                         
-                     <?php if ($status !== "Complet"): ?>
+                     <?php if ( $result_reservation['status'] !== "Complet"): ?>
     <a href="reservation.php?id=<?= $v['id_visiteguide'] ?>"
        class="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700">
         Réserver
@@ -169,7 +120,7 @@ if ($status !== $v['status_visiteguide']) {
 <?php endif; ?>
                     </div>
                 </div>
-            <?php endwhile; ?>
+            <?php   }; ?>
         <?php else: ?>
             <p class="col-span-full text-center text-gray-500">Aucune visite trouvée.</p>
         <?php endif; ?>

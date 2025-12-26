@@ -5,7 +5,7 @@ class Reservation
     private $idUser;
     private $nbPersonnes;
 
-    public function __construct($idVisite, $idUser, $nbPersonnes)
+    public function __construct($idVisite="", $idUser="", $nbPersonnes="")
     {
         $this->idVisite = $idVisite;
         $this->idUser = $idUser;
@@ -51,5 +51,50 @@ class Reservation
             ':user' => $this->idUser,
             ':visite' => $this->idVisite
         ]);
+    }
+
+
+
+   public function getTotalPersonnes($conn, $id_visite) {
+    $sql = "SELECT SUM(nb_personnes) AS total_personnes
+            FROM reservation
+            WHERE id_visiteguide = :id_visite";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([':id_visite' => $id_visite]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $row['total_personnes'] ?? 0;
+}
+
+
+
+    public function updateStatusVisite($con, $visite) {
+        $places_reservees = $this->getTotalPersonnes($con, $visite['id_visiteguide']);
+        $capacite_max = (int)$visite['capaciter_max'];
+
+        if ($places_reservees >= $capacite_max) {
+            $status = "Complet";
+            $color = "red";
+        } elseif ($places_reservees >= ($capacite_max - 3)) {
+            $status = "Limité";
+            $color = "yellow";
+        } else {
+            $status = "Disponible";
+            $color = "green";
+        }
+
+   
+        if ($status !== $visite['status_visiteguide']) {
+           $update_sql = "UPDATE visite_guidee
+               SET status_visiteguide = :status
+               WHERE id_visiteguide = :id_visite";
+$stmt_update = $con->prepare($update_sql);
+$stmt_update->execute([
+    ':status' => $status,
+    ':id_visite' => $visite['id_visiteguide']
+]);
+        }
+
+        return ['status' => $status, 'color' => $color];
     }
 }

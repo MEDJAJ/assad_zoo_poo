@@ -13,7 +13,7 @@ if (file_exists('../../../includes/config.php')) {
 $db = new Database();
 $conn = $db->getConnection();
 
-$id_u = $_SESSION["user_connecte"] ?? null;
+$id_u =  $_SESSION['user_id'] ?? null;
 
 if (!$id_u) {
     die("Utilisateur non connecté");
@@ -32,10 +32,11 @@ if (!$user) {
 }
 
 
-if ($user['status_utilisateure'] == 1) {
+if ((int)$user['status_utilisateure'] === 1) {
     header("Location: ../guide/guide_dashboard.php");
     exit;
 }
+
 ?>
 
 
