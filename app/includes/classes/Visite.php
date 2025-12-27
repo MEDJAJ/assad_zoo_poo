@@ -156,7 +156,7 @@ public function getReservationsByGuide($conn, int $id_guide)
     $stmt->bindValue(':id', $id_guide, PDO::PARAM_INT);
     $stmt->execute();
 
-    return $stmt;
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 

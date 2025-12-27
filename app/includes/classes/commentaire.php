@@ -52,7 +52,7 @@ class Commentaire
 
 
     
-    // Récupérer les infos de la visite
+  
     public static function getVisiteInfo($conn, $idVisite)
     {
         $sql = "SELECT v.*, u.nom 
@@ -64,7 +64,7 @@ class Commentaire
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Validation simple (titre et texte)
+ 
     public static function validate($titre, $texte, $note)
     {
         if ($note < 1 || $note > 5) return false;

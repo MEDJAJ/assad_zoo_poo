@@ -105,7 +105,7 @@ if(empty($visite_result)){
                     
                  ?>
                 <div class="animal-card bg-white rounded-xl shadow-md overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=500" 
+                    <img src="../../../assets/uploads/<?= htmlspecialchars($row_animal['image']) ?>" 
                          alt="Lion" class="w-full h-48 object-cover">
                     <div class="p-4">
                         <h3 class="font-bold text-lg mb-2"><strong>Nom :</strong> <?=   $row_animal["nom"]   ?></h3>

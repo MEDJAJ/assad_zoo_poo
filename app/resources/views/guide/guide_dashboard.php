@@ -60,7 +60,7 @@ $result_count = $visiteObj->countVisitesActives($conn,$id);
 
     <div class="bg-white p-6 rounded-xl shadow">
         <p class="text-gray-500">Réservations</p>
-        <p class="text-3xl font-bold"><?= $reservations_result->fetchColumn() ?></p>
+        <p class="text-3xl font-bold"><?= count($reservations_result) ?></p>
     </div>
 </div>
 
