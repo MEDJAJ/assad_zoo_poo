@@ -101,6 +101,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <div class="floating-lion inline-block mb-6"><div class="text-8xl">🦁</div></div>
             <h1 class="text-4xl md:text-5xl font-bold mb-4">Zoo Virtuel<br>ASSAD</h1>
             <p class="text-xl opacity-90 mb-8">Découvrez les lions de l'Atlas et la faune africaine</p>
+            <a href="../visitor/home.php"
+   class="inline-block px-7 py-3 text-white font-semibold text-base
+          border-2 border-white rounded-full
+          transition-all duration-300 ease-in-out
+          hover:bg-blue-600 hover:border-blue-600
+          hover:shadow-lg hover:shadow-blue-500/40
+          hover:-translate-y-1">
+   Juste Voir
+</a>
+
         </div>
 
         <div class="w-full md:w-1/2">

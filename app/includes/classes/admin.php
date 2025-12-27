@@ -32,7 +32,7 @@ class Admin extends Utilisateur
                 : $visitor->activate($conn,$id);
         }
 
-        if ($user['role'] === 'guide') {
+        if ($user['role'] === 'guide'){
             $guide = new Guide( $user['nom'],$user['email'],'guide',$user['mot_passe'], $user['status_utilisateure'],$user['paye']);
             return $user['status_utilisateure'] == 1
                 ? $guide->disapprove($conn,$id)
