@@ -72,6 +72,16 @@ class Commentaire
         if (strlen($texte) < 10 || strlen($texte) > 1000) return false;
         return true;
     }
+
+
+
+    public static function MaxNoteParVisite($conn,$id_visite){
+       $query_note="SELECT MAX(c.note) AS note_moyenne FROM visite_guidee v INNER JOIN commentaire c ON c.id_visiteguide=v.id_visiteguide WHERE v.id_visiteguide=".$id_visite;
+      $stmt=$conn->prepare($query_note);
+      $stmt->execute();
+      return $stmt->fetch(PDO::FETCH_ASSOC);
+   
+    }
 }
 
 

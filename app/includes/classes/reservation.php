@@ -97,4 +97,32 @@ $stmt_update->execute([
 
         return ['status' => $status, 'color' => $color];
     }
+
+
+
+    public function getCountReservation($conn){
+        $sql="SELECT * FROM reservation";
+        $stm=$conn->prepare($sql);
+        $stm->execute();
+        $reservations=$stm->fetchAll(PDO::FETCH_ASSOC);
+        return count($reservations);
+    }
+
+    public function prendeTopVisiteReservation($conn){
+        $requéte_prende_top_reservation="SELECT 
+    v.titre,
+    g.nom AS nom_guide,
+    v.id_visiteguide AS id_visite,
+    COUNT(r.id_reservation) AS total_reservations
+FROM visite_guidee v
+INNER JOIN utilisateur g ON v.id_guide = g.id_utilisateure
+LEFT JOIN reservation r ON v.id_visiteguide = r.id_visiteguide
+GROUP BY v.id_visiteguide, v.titre, g.nom
+ORDER BY total_reservations DESC
+LIMIT 1";
+ $stm=$conn->prepare($requéte_prende_top_reservation);
+    $stm->execute();
+    return $stm->fetch(PDO::FETCH_ASSOC);
+    }
+   
 }

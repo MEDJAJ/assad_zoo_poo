@@ -6,48 +6,33 @@ if (file_exists('../../../includes/config.php')) {
     echo 'Fichier config.php introuvable';
 }
 
-$requéte_sql_u="SELECT * FROM utilisateur";
-$requéte_sql_a="SELECT * FROM animaux";
-$requéte_sql_visiteurs="SELECT * FROM utilisateur  WHERE role='visitor'";
-$requéte_sql_r="SELECT * FROM reservation";
-$requéte_sql_g="SELECT * FROM utilisateur  WHERE role='guide'";
 
-$result__sql_u=mysqli_query($con,$requéte_sql_u);
-$result__sql_a=mysqli_query($con,$requéte_sql_a);
-$result__sql_v=mysqli_query($con,$requéte_sql_visiteurs);
-$result__sql_r=mysqli_query($con,$requéte_sql_r);
-$result__sql_g=mysqli_query($con,$requéte_sql_g);
 
-if(!$result__sql_u){
-    die("Error de la récuperation utilsateures");
-}
-if(!$result__sql_a){
-    die("Error de la récuperation animaux");
-}
-if(!$result__sql_v){
-    die("Error de la récuperation visiteurs");
-}
-if(!$result__sql_r){
-    die("Error de la récuperation reservation");
-}
-if(!$result__sql_g){
-    die("Error de la récuperation de toutes les quides de app");
-}
+include '../../../includes/classes/Animal.php';
+include '../../../includes/classes/utilisateure.php';
+include '../../../includes/classes/reservation.php';
+include '../../../includes/classes/guide.php';
+include '../../../includes/classes/visitor.php';
+include '../../../includes/classes/commentaire.php';
+$db = new Database();
+$conn = $db->getConnection();
 
-$requéte_prende_top_reservation="SELECT 
-    v.titre,
-    g.nom AS nom_guide,
-    v.id_visiteguide AS id_visite,
-    COUNT(r.id_reservation) AS total_reservations
-FROM visite_guidee v
-INNER JOIN utilisateur g ON v.id_guide = g.id_utilisateure
-LEFT JOIN reservation r ON v.id_visiteguide = r.id_visiteguide
-GROUP BY v.id_visiteguide, v.titre, g.nom
-ORDER BY total_reservations DESC
-LIMIT 1";
+$animal=new Animal();
+$reservation=new Reservation();
 
-$result_prende_top_reservation=mysqli_query($con,$requéte_prende_top_reservation);
-if(!$result_prende_top_reservation){
+$countguide=Guide::getCountGuide($conn);
+$countvisitor=Visitor::getCountVisitor($conn);
+$req_animaux = $animal->getAll($conn);
+$count=$reservation->getCountReservation($conn);
+$req_utilisateure=Utilisateur::getAllUsers($conn) ;
+
+
+
+$topvisite=$reservation->prendeTopVisiteReservation($conn);
+
+
+
+if(!$topvisite){
     die("Error de la récupération de donner");
 }
 
@@ -115,7 +100,7 @@ if(!$result_prende_top_reservation){
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-500">Utilisateurs Total</p>
-                            <p class="text-3xl font-bold"><?= mysqli_num_rows($result__sql_u) ?></p>
+                            <p class="text-3xl font-bold"><?= count($req_utilisateure) ?></p>
                         </div>
                         <i class="fas fa-users text-3xl text-blue-500"></i>
                     </div>
@@ -125,7 +110,7 @@ if(!$result_prende_top_reservation){
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-500">Animaux Total</p>
-                            <p class="text-3xl font-bold"><?= mysqli_num_rows($result__sql_a) ?></p>
+                            <p class="text-3xl font-bold"><?= count($req_animaux) ?></p>
                         </div>
                         <i class="fas fa-paw text-3xl text-green-500"></i>
                     </div>
@@ -135,7 +120,7 @@ if(!$result_prende_top_reservation){
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-500">Réservations</p>
-                            <p class="text-3xl font-bold"><?= mysqli_num_rows($result__sql_r) ?></p>
+                            <p class="text-3xl font-bold"><?= $count ?></p>
                         </div>
                         <i class="fas fa-ticket-alt text-3xl text-purple-500"></i>
                     </div>
@@ -145,7 +130,7 @@ if(!$result_prende_top_reservation){
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-500">Visiteurs Totale</p>
-                            <p class="text-3xl font-bold"><?= mysqli_num_rows($result__sql_v) ?></p>
+                            <p class="text-3xl font-bold"><?= $countvisitor ?></p>
                         </div>
                         <i class="fas fa-money-bill-wave text-3xl text-yellow-500"></i>
                     </div>
@@ -156,7 +141,7 @@ if(!$result_prende_top_reservation){
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-500">Guides Totale</p>
-                            <p class="text-3xl font-bold"><?= mysqli_num_rows($result__sql_g) ?></p>
+                            <p class="text-3xl font-bold"><?= $countguide ?></p>
                         </div>
                         <i class="fas fa-money-bill-wave text-3xl text-yellow-500"></i>
                     </div>
@@ -182,19 +167,14 @@ if(!$result_prende_top_reservation){
                         </thead>
                         <tbody>
                             <?php
-                        if(mysqli_num_rows($result_prende_top_reservation)>0){
-                            $row=mysqli_fetch_assoc($result_prende_top_reservation);
-                            $query_note="SELECT MAX(c.note) AS note_moyenne FROM visite_guidee v INNER JOIN commentaire c ON c.id_visiteguide=v.id_visiteguide WHERE v.id_visiteguide=".$row['id_visite'];
-                            $result_max_note=mysqli_query($con,$query_note);
-                            if(!$result_max_note){
-                                die("Error de la récupération de max note");
-                            }
-                            $row_max=mysqli_fetch_assoc($result_max_note);
+                        if(count($topvisite)>0){
+                            $row_max=Commentaire::MaxNoteParVisite($conn,$topvisite['id_visite']);
+                           
                             ?>
                             <tr class="border-t hover:bg-gray-50">
-                                <td class="p-4 text-yellow-500 font-bold"><?= $row['titre'] ?></td>
-                                <td class="p-4 text-yellow-500 font-bold"><?= $row['nom_guide'] ?></td>
-                                <td class="p-4 text-yellow-500 font-bold"><?= $row['total_reservations'] ?></td>
+                                <td class="p-4 text-yellow-500 font-bold"><?= $topvisite['titre'] ?></td>
+                                <td class="p-4 text-yellow-500 font-bold"><?= $topvisite['nom_guide'] ?></td>
+                                <td class="p-4 text-yellow-500 font-bold"><?= $topvisite['total_reservations'] ?></td>
                                 <td class="p-4">
                                     <span class="text-yellow-500 font-bold"> <?= $row_max['note_moyenne'] ?></span>
                                 </td>

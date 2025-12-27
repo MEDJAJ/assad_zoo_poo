@@ -52,4 +52,12 @@ class Guide extends Utilisateur
         $stmt = $conn->prepare($sql);
         return $stmt->execute([':id' => $id]);
     }
+
+    public static function getCountGuide($conn){
+        $sql="SELECT * FROM utilisateur WHERE role='guide'";
+        $stmt=$conn->prepare($sql);
+        $stmt->execute();
+        $countguide=$stmt->fetchAll(PDO::FETCH_ASSOC);
+        return count($countguide);
+    }
 }

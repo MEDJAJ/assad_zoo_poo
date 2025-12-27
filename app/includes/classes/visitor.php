@@ -47,7 +47,14 @@ public function __construct($nom, $email, $passwordHash, $pays, $role,$isActive)
         ]);
     }
 
-  
+   public static function getCountVisitor($conn){
+        $sql="SELECT * FROM utilisateur WHERE role='visitor'";
+        $stmt=$conn->prepare($sql);
+        $stmt->execute();
+        $countvisitor=$stmt->fetchAll(PDO::FETCH_ASSOC);
+        return count($countvisitor);
+    }
+
 }
 
 
