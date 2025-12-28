@@ -22,7 +22,7 @@ $id_userconnecter = $_SESSION['user_id'];
 $db = new Database();
 $conn = $db->getConnection();
 
-/* ================== VISITE ================== */
+
 $stmt = $conn->prepare("
     SELECT v.*, u.nom
     FROM visite_guidee v
@@ -36,7 +36,7 @@ if (!$visite) {
     die("Visite introuvable");
 }
 
-/* ================== RÉSERVATION ================== */
+
 $error = null;
 $success = null;
 
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-/* ================== ÉTAPES ================== */
+
 $etapeModel = new EtapeVisite();
 $etapes = $etapeModel->getEtapesByVisite($conn, $id_visite);
 ?>

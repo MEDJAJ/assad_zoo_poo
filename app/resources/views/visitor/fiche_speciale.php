@@ -107,6 +107,7 @@
       </div>
     </div>
 
+    
 
     <div>
       <h3 class="text-2xl font-bold mb-4">Gallery</h3>
