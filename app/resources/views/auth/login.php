@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     
         $result = Utilisateur::login($conn, $email, $password);
 
-        if ($result === true) {
+        if ($result === true){
 
            switch ($_SESSION['role']) {
 
@@ -164,18 +164,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
     </div>
 
-    <script>
-        function toggleLoginPassword() {
-            const passwordField = document.getElementById('login_password');
-            const icon = event.currentTarget.querySelector('i');
-            if(passwordField.type === 'password') {
-                passwordField.type = 'text';
-                icon.classList.replace('fa-eye','fa-eye-slash');
-            } else {
-                passwordField.type = 'password';
-                icon.classList.replace('fa-eye-slash','fa-eye');
-            }
-        }
-    </script>
+  
 </body>
 </html>

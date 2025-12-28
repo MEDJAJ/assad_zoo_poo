@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($user->register($conn)) {
             $etat = "success";
             $message = ($role === 'guide')
-                ? "Compte guide créé, en attente d'approbation"
+                ? "Compte guide créé avec succés  "
                 : "Compte visiteur créé avec succès";
         } else {
             $etat = "error";
@@ -138,8 +138,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <select name="role" class="w-full p-3 border rounded-lg" required>
                 <option value="">Choisir un rôle</option>
-                <option value="visitor" <?= (@$_POST['role']=='visitor')?'selected':'' ?>>Visiteur</option>
-                <option value="guide" <?= (@$_POST['role']=='guide')?'selected':'' ?>>Guide</option>
+                <option value="visitor" <?= (($_POST['role'] ?? '')=='visitor') ? 'selected' : '' ?>>Visiteur</option>
+                <option value="guide" <?= (($_POST['role'] ?? '')=='guide') ? 'selected' : '' ?>>Guide</option>
+
             </select>
 
             <button class="w-full gradient-bg text-white py-3 rounded-lg font-bold hover:opacity-90">
