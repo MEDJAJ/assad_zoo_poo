@@ -10,6 +10,11 @@ public function __construct($nom, $email, $passwordHash, $pays, $role,$isActive)
 }
 
 
+public function setIsActive($isActive){
+    $this->isActive=$isActive;
+}
+
+
 
   public function isActive() { return $this->isActive; }
 

@@ -16,6 +16,27 @@ class Commentaire
         $this->titre=$titre;
     }
 
+
+    public function setNote($note){
+        $this->note=$note;
+    }
+
+      public function setText($texte){
+         $this->texte=$texte;
+    }
+
+      public function setVisite($id_visite){
+        $this->idVisite=$id_visite;
+    }
+
+      public function setUser($id_user){
+        $this->idUser=$id_user;
+    }
+
+    public function setTitre($titre){
+        $this->titre=$titre;
+    }
+
  
     public function save($conn)
     {

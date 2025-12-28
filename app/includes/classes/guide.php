@@ -19,6 +19,10 @@ class Guide extends Utilisateur
         $this->isApproved = false;
     }
 
+    public function setIsApproved($isApproved){
+        $this->isApproved=$isApproved;
+    }
+
     public function register($conn)
     {
         $sql = "INSERT INTO utilisateur
