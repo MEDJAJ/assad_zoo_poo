@@ -19,11 +19,26 @@ class Utilisateur
         $this->role = $role;
     }
 
-    public function getRole()
-    {
-        return $this->role;
+     public function setNom($nom) {
+        $this->nom = $nom;
     }
 
+       public function setEmail($email) {
+        $this->email = $email;
+    }
+
+       public function setPasswordHash($password) {
+        $this->passwordHash = $password;
+    }
+
+
+    public function setPays($pays) {
+        $this->pays = $pays;
+    }
+
+  public function setRole($role) {
+        $this->role = $role;
+    }
    
  
 
